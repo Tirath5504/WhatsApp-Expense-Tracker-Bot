@@ -34,9 +34,9 @@ This is a WhatsApp bot that helps users track their expenses. The bot uses Twili
     pip install -r requirements.txt
     ```
 
-4. Set up the PostgreSQL database and update the connection details in [config.py](http://_vscodecontentref_/1).
+4. Set up the PostgreSQL database and update the connection details in config.py.
 
-5. Create a [.env](http://_vscodecontentref_/2) file in the root directory and add your Twilio credentials:
+5. Create a .env file in the root directory and add your Twilio credentials:
     ```env
     TWILIO_ACCOUNT_SID = "your_account_sid"
     TWILIO_AUTH_TOKEN = "your_auth_token"
