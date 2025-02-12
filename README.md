@@ -19,8 +19,8 @@ This is a WhatsApp bot that helps users track their expenses. The bot uses Twili
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/Tirath5504/whatsapp-expense-tracker-bot.git
-    cd whatsapp-expense-tracker-bot/app
+    git clone https://github.com/Tirath5504/trufides_intern_task_whatsapp_bot.git
+    cd trufides_intern_task_whatsapp_bot
     ```
 
 2. Create and activate a virtual environment:
@@ -65,11 +65,11 @@ This is a WhatsApp bot that helps users track their expenses. The bot uses Twili
 
 ## Project Structure
 
-- [main.py](http://_vscodecontentref_/3): FastAPI application setup.
-- [routes.py](http://_vscodecontentref_/4): API routes for handling WhatsApp messages.
-- [db.py](http://_vscodecontentref_/5): Database models and setup.
-- [nlp.py](http://_vscodecontentref_/6): NLP functions for parsing and categorizing expenses.
-- [config.py](http://_vscodecontentref_/7): Configuration for environment variables and database connection.
+- main.py: FastAPI application setup.
+- routes.py: API routes for handling WhatsApp messages.
+- db.py: Database models and setup.
+- nlp.py: NLP functions for parsing and categorizing expenses.
+- config.py: Configuration for environment variables and database connection.
 
 ## License
 
