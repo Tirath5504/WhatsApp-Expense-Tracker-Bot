@@ -4,9 +4,9 @@ from starlette.responses import Response
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from db import SessionLocal, Expense
-from nlp import parse_expense, handle_query
-from utils import classify_message_type 
+from app.db import SessionLocal, Expense
+from app.nlp import parse_expense, handle_query
+from app.utils import classify_message_type 
 
 router = APIRouter()
 

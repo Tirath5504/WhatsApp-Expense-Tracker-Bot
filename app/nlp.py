@@ -1,6 +1,6 @@
 import google.generativeai as genai
 from sqlalchemy.orm import Session
-from db import Expense
+from app.db import Expense
 from dotenv import load_dotenv
 
 load_dotenv()
