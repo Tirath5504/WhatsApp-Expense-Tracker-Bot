@@ -1,0 +1,101 @@
+import google.generativeai as genai
+from sqlalchemy.orm import Session
+from db import Expense
+from dotenv import load_dotenv
+
+load_dotenv()
+
+genai.configure()
+gemini_model = genai.GenerativeModel("gemini-2.0-flash-lite-preview-02-05")
+
+CATEGORIES = ["food", "travel", "shopping", "groceries", "entertainment", "bills", "rent", "other"]
+
+def extract_amount(text):
+    prompt = f"""
+    Extract the expense amount from this sentence.
+    Return only a **numeric value** in INR (₹) without extra words.
+
+    Example Inputs & Outputs:
+    - "I spent ₹500 at Starbucks" → 500
+    - "Paid 1200 for a new phone" → 1200
+    - "Bought groceries worth 350" → 350
+
+    Now extract the amount from: "{text}"
+    """
+    
+    response = gemini_model.generate_content(prompt)
+    try:
+        return float(response.text.strip()) 
+    except ValueError:
+        return None
+
+def extract_vendor(text):
+    prompt = f"""
+    Identify the vendor/store where the user spent money.
+    Return **only the vendor name** (no extra words).
+
+    Example Inputs & Outputs:
+    - "I spent ₹500 at Starbucks" → Starbucks
+    - "Paid 1200 for a new phone on Amazon" → Amazon
+    - "Bought groceries worth 350 from Big Bazaar" → Big Bazaar
+
+    Now extract the vendor from: "{text}"
+    """
+    
+    response = gemini_model.generate_content(prompt)
+    vendor_name = response.text.strip()
+    
+    return vendor_name if vendor_name.lower() not in ["none", "unknown"] else None
+
+def classify_category(text):
+    prompt = f"""
+    Categorize the following expense message into a **single-word category** like:
+    "food", "travel", "shopping", "groceries", "entertainment", "bills", "rent", or "other".
+    
+    Example Inputs & Outputs:
+    - "Bought a burger for ₹250 at McDonald's" → food
+    - "Paid ₹150 for Uber ride" → travel
+    - "Spent ₹5000 on new shoes at Nike" → shopping
+    - "Grocery shopping of ₹1200 at D-Mart" → groceries
+    - "Paid ₹700 for Netflix subscription" → entertainment
+
+    Now classify: "{text}"
+    """
+    
+    response = gemini_model.generate_content(prompt)
+    category = response.text.strip().lower()
+
+    valid_categories = {"food", "travel", "shopping", "groceries", "entertainment", "bills", "rent", "other"}
+    return category if category in valid_categories else "other" 
+
+def parse_expense(text):
+    amount = extract_amount(text)
+    vendor = extract_vendor(text)
+    category = classify_category(text)
+
+    if amount is None:
+        return None
+    
+    return {"amount": amount, "category": category, "vendor": vendor}
+
+def generate_llm_response(prompt):
+    response = gemini_model.generate_content(prompt)
+    return response.text if response else "I couldn't process that request."
+
+def handle_query(text, user_id, db: Session):
+    expenses = db.query(Expense).filter(Expense.user_id == user_id).all()
+    print(expenses)
+    total_spent = sum(exp.amount for exp in expenses)
+
+    expense_summary = "\n".join(f"{exp.category}: ₹{exp.amount} at {exp.vendor or 'Unknown'}" for exp in expenses)
+
+    prompt = f"""
+    You are an intelligent financial assistant. A user is asking about their expenses. 
+    Their total spending is ₹{total_spent}.
+    Here are their recorded expenses:
+    {expense_summary}
+
+    Respond naturally to their query: "{text}"
+    """
+
+    return generate_llm_response(prompt)
