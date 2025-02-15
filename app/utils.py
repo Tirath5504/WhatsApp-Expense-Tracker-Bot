@@ -1,10 +1,10 @@
-import google.generativeai as genai
 from dotenv import load_dotenv
+from groq import Groq
+import os
 
 load_dotenv()
 
-genai.configure()
-gemini_model = genai.GenerativeModel("gemini-2.0-flash-lite-preview-02-05")
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def classify_message_type(text):
     prompt = f"""
@@ -22,9 +22,11 @@ def classify_message_type(text):
     - "Bought groceries worth 350" → "expense_entry"
     """
 
-    response = gemini_model.generate_content(prompt)
-    message_type = response.text.strip().lower()
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",  
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-    if message_type in ["expense_entry", "query"]:
-        return message_type
-    return "query"  
+    message_type = response.choices[0].message.content.strip().lower()
+
+    return message_type if message_type in ["expense_entry", "query"] else "query"

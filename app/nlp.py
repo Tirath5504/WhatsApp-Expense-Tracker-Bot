@@ -1,12 +1,12 @@
-import google.generativeai as genai
+from groq import Groq
 from sqlalchemy.orm import Session
 from app.db import Expense
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
-genai.configure()
-gemini_model = genai.GenerativeModel("gemini-2.0-flash-lite-preview-02-05")
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 CATEGORIES = ["food", "travel", "shopping", "groceries", "entertainment", "bills", "rent", "other"]
 
@@ -23,9 +23,12 @@ def extract_amount(text):
     Now extract the amount from: "{text}"
     """
     
-    response = gemini_model.generate_content(prompt)
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",  
+        messages=[{"role": "user", "content": prompt}]
+    )
     try:
-        return float(response.text.strip()) 
+        return float(response.choices[0].message.content.strip()) 
     except ValueError:
         return None
 
@@ -42,9 +45,12 @@ def extract_vendor(text):
     Now extract the vendor from: "{text}"
     """
     
-    response = gemini_model.generate_content(prompt)
-    vendor_name = response.text.strip()
-    
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    vendor_name = response.choices[0].message.content.strip()
     return vendor_name if vendor_name.lower() not in ["none", "unknown"] else None
 
 def classify_category(text):
@@ -62,11 +68,14 @@ def classify_category(text):
     Now classify: "{text}"
     """
     
-    response = gemini_model.generate_content(prompt)
-    category = response.text.strip().lower()
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role": "user", "content": prompt}]
+    )
 
+    category = response.choices[0].message.content.strip().lower()
     valid_categories = {"food", "travel", "shopping", "groceries", "entertainment", "bills", "rent", "other"}
-    return category if category in valid_categories else "other" 
+    return category if category in valid_categories else "other"
 
 def parse_expense(text):
     amount = extract_amount(text)
@@ -79,8 +88,13 @@ def parse_expense(text):
     return {"amount": amount, "category": category, "vendor": vendor}
 
 def generate_llm_response(prompt):
-    response = gemini_model.generate_content(prompt)
-    return response.text if response else "I couldn't process that request."
+    response = client.chat.completions.create(
+        model="llama3-8b-8192", 
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return response.choices[0].message.content.strip() if response.choices else "I couldn't process that request."
+
 
 def handle_query(text, user_id, db: Session):
     expenses = db.query(Expense).filter(Expense.user_id == user_id).all()
