@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.db import Expense
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 
@@ -12,10 +13,10 @@ CATEGORIES = ["food", "travel", "shopping", "groceries", "entertainment", "bills
 
 def extract_amount(text):
     prompt = f"""
-    Extract the expense amount from this sentence.
-    Return only a **numeric value** in INR (₹) without extra words.
+    Extract the **exact numeric amount** from the following expense message.
+    Only return the number, nothing else. Do NOT include currency symbols or words.
 
-    Example Inputs & Outputs:
+    Example:
     - "I spent ₹500 at Starbucks" → 500
     - "Paid 1200 for a new phone" → 1200
     - "Bought groceries worth 350" → 350
@@ -27,10 +28,11 @@ def extract_amount(text):
         model="llama3-8b-8192",  
         messages=[{"role": "user", "content": prompt}]
     )
-    try:
-        return float(response.choices[0].message.content.strip()) 
-    except ValueError:
-        return None
+
+    output = response.choices[0].message.content.strip()
+    
+    match = re.search(r"\d+(\.\d{1,2})?", output)  
+    return float(match.group()) if match else None
 
 def extract_vendor(text):
     prompt = f"""
