@@ -9,8 +9,6 @@ load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-CATEGORIES = ["food", "travel", "shopping", "groceries", "entertainment", "bills", "rent", "other"]
-
 def extract_amount(text):
     prompt = f"""
     Extract the **exact numeric amount** from the following expense message.
@@ -75,9 +73,10 @@ def classify_category(text):
         messages=[{"role": "user", "content": prompt}]
     )
 
-    category = response.choices[0].message.content.strip().lower()
-    valid_categories = {"food", "travel", "shopping", "groceries", "entertainment", "bills", "rent", "other"}
-    return category if category in valid_categories else "other"
+    output = response.choices[0].message.content.strip().lower()
+    match = re.search(r"\b(food|travel|shopping|groceries|entertainment|bills|rent|other)\b", output)
+
+    return match.group() if match else "other"
 
 def parse_expense(text):
     amount = extract_amount(text)
