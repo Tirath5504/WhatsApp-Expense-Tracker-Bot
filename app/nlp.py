@@ -102,7 +102,7 @@ def handle_query(text, user_id, db: Session):
     print(expenses)
     total_spent = sum(exp.amount for exp in expenses)
 
-    expense_summary = "\n".join(f"{exp.category}: ₹{exp.amount} at {exp.vendor or 'Unknown'}" for exp in expenses)
+    expense_summary = "\n".join(f"{exp.category}: ₹{exp.amount} at {exp.vendor or 'Unknown'} on {exp.date}" for exp in expenses)
 
     prompt = f"""
     You are an intelligent financial assistant. A user is asking about their expenses. 
